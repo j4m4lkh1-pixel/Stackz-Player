@@ -37,6 +37,36 @@ async function safeFetch(url, res) {
   }
 }
 
+async function proxyStream(url, req, res) {
+  try {
+    const upstream = await fetch(url, {
+      headers: {
+        "user-agent": req.headers["user-agent"] || "Mozilla/5.0",
+        accept: "*/*"
+      }
+    });
+
+    if (!upstream.ok) {
+      const text = await upstream.text();
+      return res.status(upstream.status).send(text || "Upstream stream error");
+    }
+
+    const contentType = upstream.headers.get("content-type");
+    if (contentType) {
+      res.setHeader("Content-Type", contentType);
+    }
+
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Cache-Control", "no-store");
+
+    const body = await upstream.arrayBuffer();
+    res.send(Buffer.from(body));
+  } catch (err) {
+    console.log("Proxy stream failed:", err);
+    res.status(500).send("Proxy stream failed");
+  }
+}
+
 // FRONTEND PAGES
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "login.html"));
@@ -111,6 +141,27 @@ app.get("/get-movie-info", (req, res) => {
 app.get("/get-series-info", (req, res) => {
   const { dns, username, password, id } = req.query;
   safeFetch(`${dns}/player_api.php?username=${username}&password=${password}&action=get_series_info&series_id=${id}`, res);
+});
+
+// PROXY LIVE STREAM
+app.get("/proxy/live/:username/:password/:streamId.m3u8", (req, res) => {
+  const dns = req.query.dns;
+  const { username, password, streamId } = req.params;
+  proxyStream(`${dns}/live/${username}/${password}/${streamId}.m3u8`, req, res);
+});
+
+// PROXY MOVIE STREAM
+app.get("/proxy/movie/:username/:password/:streamId.:ext", (req, res) => {
+  const dns = req.query.dns;
+  const { username, password, streamId, ext } = req.params;
+  proxyStream(`${dns}/movie/${username}/${password}/${streamId}.${ext}`, req, res);
+});
+
+// PROXY SERIES EPISODE STREAM
+app.get("/proxy/series/:username/:password/:streamId.:ext", (req, res) => {
+  const dns = req.query.dns;
+  const { username, password, streamId, ext } = req.params;
+  proxyStream(`${dns}/series/${username}/${password}/${streamId}.${ext}`, req, res);
 });
 
 app.listen(PORT, () => {
