@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>STACKZ Profiles</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Orbitron', sans-serif;
+      color: white;
+      background:
+        radial-gradient(circle at top, rgba(143,211,255,0.10) 0%, rgba(12,12,29,0) 35%),
+        linear-gradient(180deg, #040814 0%, #0c0c1d 100%);
+    }
+
+    .page {
+      padding: 50px 24px 70px;
+      max-width: 1200px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .title {
+      font-size: 34px;
+      margin-bottom: 10px;
+      text-shadow: 0 0 20px rgba(255, 138, 252, 0.4);
+    }
+
+    .subtitle {
+      color: rgba(255,255,255,0.72);
+      margin-bottom: 40px;
+      font-size: 14px;
+    }
+
+    .profiles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 30px;
+      max-width: 980px;
+      margin: 0 auto 36px;
+    }
+
+    .profile-card {
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      user-select: none;
+    }
+
+    .profile-card:hover {
+      transform: scale(1.05);
+    }
+
+    .avatar-wrap {
+      width: 160px;
+      height: 160px;
+      margin: 0 auto 14px;
+      border-radius: 26px;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,255,255,0.08);
+      overflow: hidden;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.25);
+    }
+
+    .avatar-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .profile-name {
+      font-size: 15px;
+      color: rgba(255,255,255,0.92);
+      word-break: break-word;
+    }
+
+    .add-card .avatar-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 58px;
+      color: rgba(255,255,255,0.78);
+      border-style: dashed;
+    }
+
+    .bottom-actions {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 12px 18px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: bold;
+      color: white;
+      background: linear-gradient(90deg, #ce5cf0, #9725a3);
+    }
+
+    .btn.secondary {
+      background: rgba(255,255,255,0.12);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.72);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-box {
+      width: 520px;
+      max-width: 100%;
+      background: rgba(18,18,34,0.95);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 24px;
+      padding: 24px;
+      text-align: left;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.4);
+    }
+
+    .modal-title {
+      font-size: 22px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .modal input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 14px;
+      border-radius: 14px;
+      border: none;
+      background: rgba(255,255,255,0.08);
+      color: white;
+      margin-bottom: 18px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .avatar-choice-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .avatar-choice {
+      border-radius: 16px;
+      overflow: hidden;
+      border: 3px solid transparent;
+      cursor: pointer;
+      transition: 0.18s ease;
+      background: rgba(255,255,255,0.04);
+    }
+
+    .avatar-choice img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      display: block;
+    }
+
+    .avatar-choice.active {
+      border-color: #ce5cf0;
+      box-shadow: 0 0 18px rgba(206,92,240,0.45);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="title">Who's Watching?</div>
+    <div class="subtitle">Choose a profile to continue</div>
+
+    <div id="profilesGrid" class="profiles-grid"></div>
+
+    <div class="bottom-actions">
+      <button class="btn secondary" onclick="window.location.href='login.html'">Back to Login</button>
+      <button class="btn secondary" onclick="clearProfiles()">Clear Profiles</button>
+    </div>
+  </div>
+
+  <div id="profileModal" class="modal">
+    <div class="modal-box">
+      <div id="modalTitle" class="modal-title">Add Profile</div>
+
+      <input id="profileNameInput" placeholder="Profile name">
+
+      <div class="avatar-choice-grid" id="avatarChoiceGrid"></div>
+
+      <div class="modal-actions">
+        <button class="btn secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn" onclick="saveProfile()">Save Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const avatarOptions = [
+      "Profile 1.jpg",
+      "Profile 2.jpg",
+      "Profile 3.jpg",
+      "Profile 4.jpg",
+      "Profile 5.jpg",
+      "Profile 6.jpg",
+      "Profile 7.jpg",
+      "Profile 8.jpg", 
+      "Profile 9.jpg",
+      "Profile 10.jpg",
+      "Profile 11.jpg",
+      "Profile 12.jpg",
+      "Profile 13.jpg",
+      "Profile 14.jpg",
+      "Profile 15.jpg", 
+      "Profile 16.jpg",
+      "Profile 17.jpg",
+      "Profile 18.jpg",
+      "Profile 19.jpg",
+      "Profile 20.jpg",
+      "Profile 21.jpg",
+      "Profile 22.jpg",
+      "Profile 23.jpg",
+      "Profile 24.jpg",
+      "Profile 25.jpg",
+      "Profile 26.jpg",
+      "Profile 27.jpg",
+      "Profile 28.jpg",
+      "Profile 29.jpg",
+      "Profile 30.jpg",
+      "Profile 31.jpg",
+      "Profile 32.jpg",
+      "Profile 33.jpg",
+      "Profile 34.jpg",
+      "Profile 35.jpg",
+      "Profile 36.jpg",
+      "Profile 37.jpg",
+      "Profile 38.jpg",
+      "Profile 39.jpg",
+      "Profile 40.jpg",
+      "Profile 41.jpg",
+      "Profile 42.jpg", 
+      "Profile 43.jpg", 
+      "Profile 44.jpg",
+      "Profile 45.jpg", 
+      "Profile 46.jpg", 
+      "Profile 47.jpg",
+      "Profile 48.jpg",
+      "Profile 49.jpg",
+      "Profile 50.jpg",
+      "Profile 51.jpg"
+    ];
+
+    let selectedAvatar = avatarOptions[0];
+    let editingProfileId = null;
+
+    function requireSavedLogin() {
+      const dns = localStorage.getItem("dns");
+      const username = localStorage.getItem("username");
+      const password = localStorage.getItem("password");
+
+      if (!dns || !username || !password) {
+        window.location.href = "login.html";
+      }
+    }
+
+    function getProfiles() {
+      try {
+        return JSON.parse(localStorage.getItem("stackzProfiles") || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function setProfiles(profiles) {
+      localStorage.setItem("stackzProfiles", JSON.stringify(profiles));
+    }
+
+    function renderProfiles() {
+      const grid = document.getElementById("profilesGrid");
+      const profiles = getProfiles();
+      grid.innerHTML = "";
+
+      profiles.forEach(profile => {
+        const card = document.createElement("div");
+        card.className = "profile-card";
+
+        card.innerHTML = `
+          <div class="avatar-wrap">
+            <img src="${profile.avatar}" alt="${profile.name}">
+          </div>
+          <div class="profile-name">${profile.name}</div>
+        `;
+
+        card.onclick = () => openProfile(profile);
+        card.oncontextmenu = (e) => {
+          e.preventDefault();
+          editProfile(profile.id);
+        };
+
+        grid.appendChild(card);
+      });
+
+      const addCard = document.createElement("div");
+      addCard.className = "profile-card add-card";
+      addCard.innerHTML = `
+        <div class="avatar-wrap">+</div>
+        <div class="profile-name">Add Profile</div>
+      `;
+      addCard.onclick = () => openAddProfile();
+      grid.appendChild(addCard);
+    }
+
+    function openProfile(profile) {
+      localStorage.setItem("activeProfile", JSON.stringify(profile));
+      window.location.href = "loading.html";
+    }
+
+    function openAddProfile() {
+      editingProfileId = null;
+      selectedAvatar = avatarOptions[0];
+      document.getElementById("modalTitle").textContent = "Add Profile";
+      document.getElementById("profileNameInput").value = "";
+      renderAvatarChoices();
+      document.getElementById("profileModal").style.display = "flex";
+    }
+
+    function editProfile(id) {
+      const profiles = getProfiles();
+      const profile = profiles.find(p => p.id === id);
+      if (!profile) return;
+
+      editingProfileId = id;
+      selectedAvatar = profile.avatar;
+      document.getElementById("modalTitle").textContent = "Edit Profile";
+      document.getElementById("profileNameInput").value = profile.name;
+      renderAvatarChoices();
+      document.getElementById("profileModal").style.display = "flex";
+    }
+
+    function renderAvatarChoices() {
+      const grid = document.getElementById("avatarChoiceGrid");
+      grid.innerHTML = "";
+
+      avatarOptions.forEach(avatar => {
+        const div = document.createElement("div");
+        div.className = "avatar-choice" + (selectedAvatar === avatar ? " active" : "");
+        div.innerHTML = `<img src="${avatar}" alt="${avatar}">`;
+        div.onclick = () => {
+          selectedAvatar = avatar;
+          renderAvatarChoices();
+        };
+        grid.appendChild(div);
+      });
+    }
+
+    function saveProfile() {
+      const name = document.getElementById("profileNameInput").value.trim();
+      if (!name) return;
+
+      const profiles = getProfiles();
+
+      if (editingProfileId) {
+        const profile = profiles.find(p => p.id === editingProfileId);
+        if (profile) {
+          profile.name = name;
+          profile.avatar = selectedAvatar;
+        }
+      } else {
+        profiles.push({
+          id: Date.now().toString(),
+          name,
+          avatar: selectedAvatar
+        });
+      }
+
+      setProfiles(profiles);
+      closeModal();
+      renderProfiles();
+    }
+
+    function closeModal() {
+      document.getElementById("profileModal").style.display = "none";
+    }
+
+    function clearProfiles() {
+      localStorage.removeItem("stackzProfiles");
+      localStorage.removeItem("activeProfile");
+      renderProfiles();
+    }
+
+    document.getElementById("profileModal").addEventListener("click", (e) => {
+      if (e.target.id === "profileModal") {
+        closeModal();
+      }
+    });
+
+    requireSavedLogin();
+    renderProfiles();
+  </script>
+</body>
+</html>
