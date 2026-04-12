@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>STACKZ Player</title>
+  <title>Stackz Player</title>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
   <style>
@@ -810,19 +810,44 @@
     function getItemId(item) {
       return item?.stream_id || item?.series_id || item?.id || null;
     }
+function getActiveProfile() {
+  try {
+    return JSON.parse(localStorage.getItem("activeProfile") || "null");
+  } catch {
+    return null;
+  }
+}
+
+function getProfileStorageKey(baseKey) {
+  const profile = getActiveProfile();
+  const profileId = profile?.id || profile?.name || "default";
+  return `${baseKey}_${profileId}`;
+}
+
+function getProfileList(baseKey) {
+  try {
+    return JSON.parse(localStorage.getItem(getProfileStorageKey(baseKey)) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function setProfileList(baseKey, value) {
+  localStorage.setItem(getProfileStorageKey(baseKey), JSON.stringify(value));
+}
     
     function buildProxyStreamUrl(rawUrl) {
                 return `${window.location.origin}/proxy-stream?url=${encodeURIComponent(rawUrl)}`;
            }
 
     function isInWatchlist(item) {
-      const list = JSON.parse(localStorage.getItem("watchlist") || "[]");
+      const list = getProfileList("watchlist");
       const id = getItemId(item);
       return list.some(x => (x.type === item.type) && (getItemId(x) === id));
     }
 
     function isInContinueWatching(item) {
-      const list = JSON.parse(localStorage.getItem("continueWatching") || "[]");
+      const list = getProfileList("continueWatching");
       const id = getItemId(item);
       return list.some(x => (x.type === item.type) && (getItemId(x) === id));
     }
@@ -948,7 +973,7 @@
         if (!duration || !isFinite(duration) || duration <= 0) return;
         if (!currentTime || currentTime < 5) return;
 
-        const progressList = JSON.parse(localStorage.getItem("continueWatching") || "[]");
+        const progressList = getProfileList("continueWatching");
 
         const id = selectedItem.stream_id || selectedItem.id;
         const type = selectedItem.type;
@@ -973,7 +998,7 @@
           progressList.push(itemData);
         }
 
-        localStorage.setItem("continueWatching", JSON.stringify(progressList));
+        setProfileList("continueWatching", progressList);
       };
     }
 
@@ -1043,7 +1068,7 @@ play(buildProxyStreamUrl(rawUrl), "direct");
     function addToWatchlist() {
       if (!selectedItem) return;
 
-      const existing = JSON.parse(localStorage.getItem("watchlist") || "[]");
+      const existing = getProfileList("watchlist");
       const itemId = selectedItem.stream_id || selectedItem.series_id || selectedItem.id;
 
       const alreadyExists = existing.some(item => {
@@ -1057,7 +1082,7 @@ play(buildProxyStreamUrl(rawUrl), "direct");
       }
 
       existing.push(selectedItem);
-      localStorage.setItem("watchlist", JSON.stringify(existing));
+      setProfileList("watchlist", existing);
       refreshDetailActionButtons();
       renderHomeWatchlist();
       loadWatchlist();
@@ -1465,8 +1490,8 @@ play(buildProxyStreamUrl(rawUrl), "direct");
         card.appendChild(label);
 
         card.onclick = () => {
-          const rawUrl = `${dns}/live/${username}/${password}/${c.stream_id}.m3u8`;
-play(buildProxyStreamUrl(rawUrl), "live");
+          const liveUrl = `${dns.replace("http://","https://")}/live/${username}/${password}/${c.stream_id}.m3u8`;
+play(liveUrl, "live");
         };
 
         grid.appendChild(card);
@@ -1680,8 +1705,8 @@ play(buildProxyStreamUrl(rawUrl), "live");
 
         if (item.resultType === "live") {
           card.onclick = () => {
-            const rawUrl = `${dns}/live/${username}/${password}/${item.stream_id}.m3u8`;
-play(buildProxyStreamUrl(rawUrl), "live");
+            const liveUrl = `${dns.replace("http://","https://")}/live/${username}/${password}/${item.stream_id}.m3u8`;
+play(liveUrl, "live");
           };
         } else if (item.resultType === "movie") {
           card.onclick = () => openDetails(item, "movies");
