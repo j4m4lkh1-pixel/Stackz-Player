@@ -724,7 +724,75 @@
   opacity: 1;
   transition: opacity 0.25s ease;
 }
+#playerOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle, rgba(0,0,0,0.85), black);
+  z-index: 9999;
+}
 
+#video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+#playerTopBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 18px;
+  display: flex;
+  justify-content: space-between;
+  background: linear-gradient(180deg, rgba(0,0,0,0.8), transparent);
+}
+
+#playerCenterControls {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.center-control {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  color: white;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.play-main {
+  width: 90px;
+  height: 90px;
+}
+
+#playerBottomBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 18px;
+  background: linear-gradient(0deg, rgba(0,0,0,0.85), transparent);
+}
+
+#playerProgressWrap {
+  display: grid;
+  grid-template-columns: 60px 1fr 60px;
+  gap: 10px;
+  align-items: center;
+}
+
+#playerProgress {
+  width: 100%;
+}
   </style>
 </head>
 
@@ -875,6 +943,23 @@
     <div id="liveBadge">LIVE</div>
     <button id="closePlayer" onclick="closePlayer()">✕</button>
   </div>
+
+  <video id="video" autoplay></video>
+
+  <div id="playerCenterControls">
+    <button class="center-control" onclick="seekVideo(-10)">⟲ 10</button>
+    <button class="center-control play-main" onclick="togglePlayPause()">▶ / ❚❚</button>
+    <button class="center-control" onclick="seekVideo(10)">10 ⟳</button>
+  </div>
+
+  <div id="playerBottomBar">
+    <div id="playerProgressWrap">
+      <span id="currentTimeLabel">00:00</span>
+      <input id="playerProgress" type="range" min="0" max="100" value="0">
+      <span id="durationLabel">00:00</span>
+    </div>
+  </div>
+</div>
 
   <video id="video" autoplay></video>
 
@@ -1212,12 +1297,6 @@ overlay.onclick = showPlayerUI;
 const currentTimeLabel = document.getElementById("currentTimeLabel");
 const durationLabel = document.getElementById("durationLabel");
 
-video.ontimeupdate = () => {
-  if (mode !== "live" && isFinite(video.duration) && video.duration > 0) {
-    progress.value = (video.currentTime / video.duration) * 100;
-    currentTimeLabel.textContent = formatTime(video.currentTime);
-    durationLabel.textContent = formatTime(video.duration);
-  }
 
   if (mode === "live" || !selectedItem) return;
 
