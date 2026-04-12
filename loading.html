@@ -1,0 +1,6 @@
+const username = localStorage.getItem("username");
+const password = localStorage.getItem("password");
+
+fetch(`/get-channels?username=${username}&password=${password}`)
+fetch(`/get-movies?username=${username}&password=${password}`)
+fetch(`/get-series?username=${username}&password=${password}`)
