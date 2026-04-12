@@ -567,6 +567,164 @@
       font-weight: bold;
       white-space: nowrap;
     }
+
+#playerOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(20,20,30,0.35), rgba(0,0,0,0.95));
+  z-index: 9999;
+  overflow: hidden;
+}
+
+#video {
+  width: 100%;
+  height: 100%;
+  background: black;
+  object-fit: contain;
+}
+
+#playerTopBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1002;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.75), rgba(0,0,0,0));
+  pointer-events: none;
+}
+
+#playerTopBar > * {
+  pointer-events: auto;
+}
+
+#closePlayer {
+  background: rgba(255,255,255,0.14);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 999px;
+  padding: 11px 15px;
+  cursor: pointer;
+  font-size: 16px;
+  backdrop-filter: blur(10px);
+}
+
+#liveBadge {
+  background: #e53935;
+  color: white;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-weight: bold;
+  display: none;
+}
+
+#playerCenterControls {
+  position: absolute;
+  inset: 0;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  pointer-events: none;
+}
+
+#playerCenterControls > * {
+  pointer-events: auto;
+}
+
+.center-control {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(10,10,20,0.55);
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+}
+
+.center-control.play-main {
+  width: 86px;
+  height: 86px;
+  font-size: 18px;
+}
+
+#playerBottomBar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1002;
+  padding: 18px 22px 20px;
+  background: linear-gradient(0deg, rgba(0,0,0,0.88), rgba(0,0,0,0.1));
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+#playerProgressWrap {
+  display: grid;
+  grid-template-columns: 64px 1fr 64px;
+  gap: 12px;
+  align-items: center;
+}
+
+#playerProgress {
+  width: 100%;
+  accent-color: #ce5cf0;
+  cursor: pointer;
+}
+
+#currentTimeLabel,
+#durationLabel {
+  font-size: 12px;
+  color: rgba(255,255,255,0.85);
+  text-align: center;
+}
+
+#playerControlsRow,
+#episodeNav {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.player-btn {
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: linear-gradient(90deg, #ce5cf0, #9725a3);
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.player-btn.secondary {
+  background: rgba(255,255,255,0.12);
+}
+
+#playerOverlay.hide-ui #playerTopBar,
+#playerOverlay.hide-ui #playerBottomBar,
+#playerOverlay.hide-ui #playerCenterControls {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+#playerTopBar,
+#playerBottomBar,
+#playerCenterControls {
+  opacity: 1;
+  transition: opacity 0.25s ease;
+}
+
   </style>
 </head>
 
@@ -713,10 +871,38 @@
   </div>
 
   <div id="playerOverlay">
-    <button id="closePlayer" onclick="closePlayer()">Close</button>
+  <div id="playerTopBar">
     <div id="liveBadge">LIVE</div>
-    <video id="video" autoplay></video>
+    <button id="closePlayer" onclick="closePlayer()">✕</button>
   </div>
+
+  <video id="video" autoplay></video>
+
+  <div id="playerCenterControls">
+    <button class="center-control" onclick="seekVideo(-10)">⟲ 10</button>
+    <button class="center-control play-main" onclick="togglePlayPause()">▶ / ❚❚</button>
+    <button class="center-control" onclick="seekVideo(10)">10 ⟳</button>
+  </div>
+
+  <div id="playerBottomBar">
+    <div id="episodeNav" style="display:none;">
+      <button class="player-btn secondary" onclick="playPreviousEpisode()">⟵ Previous Episode</button>
+      <button class="player-btn secondary" onclick="playNextEpisode()">Next Episode ⟶</button>
+    </div>
+
+    <div id="playerProgressWrap">
+      <span id="currentTimeLabel">00:00</span>
+      <input id="playerProgress" type="range" min="0" max="100" value="0" step="0.1">
+      <span id="durationLabel">00:00</span>
+    </div>
+
+    <div id="playerControlsRow">
+      <button class="player-btn" onclick="togglePlayPause()">Play / Pause</button>
+      <button class="player-btn secondary" onclick="seekVideo(-10)">-10s</button>
+      <button class="player-btn secondary" onclick="seekVideo(10)">+10s</button>
+    </div>
+  </div>
+</div>
 
   <script>
     const dns = localStorage.getItem("dns");
@@ -731,6 +917,9 @@
     let seriesCategories = [];
 
     let selectedItem = null;
+    let currentEpisodeList = [];
+    let currentEpisodeIndex = -1;
+    let hideUiTimer = null;
     let lastPage = "movies";
     let currentHls = null;
     let currentSeriesData = null;
@@ -819,6 +1008,81 @@ function setProfileList(baseKey, value) {
                 return `${window.location.origin}/proxy-stream?url=${encodeURIComponent(rawUrl)}`;
            }
 
+function formatTime(seconds) {
+  if (!isFinite(seconds) || seconds < 0) return "00:00";
+  const hrs = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+
+  if (hrs > 0) {
+    return `${String(hrs).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  }
+  return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
+
+function showPlayerUI() {
+  const overlay = document.getElementById("playerOverlay");
+  overlay.classList.remove("hide-ui");
+
+  clearTimeout(hideUiTimer);
+  hideUiTimer = setTimeout(() => {
+    overlay.classList.add("hide-ui");
+  }, 3000);
+}
+
+function togglePlayPause() {
+  const video = document.getElementById("video");
+  if (video.paused) {
+    video.play().catch(() => {});
+  } else {
+    video.pause();
+  }
+  showPlayerUI();
+}
+
+function seekVideo(seconds) {
+  const video = document.getElementById("video");
+  if (!isFinite(video.duration)) return;
+  video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + seconds));
+  showPlayerUI();
+}
+
+function updateEpisodeNavButtons() {
+  const nav = document.getElementById("episodeNav");
+  if (selectedItem?.type === "series_episode" && currentEpisodeList.length > 0) {
+    nav.style.display = "flex";
+  } else {
+    nav.style.display = "none";
+  }
+}
+
+function playEpisodeByIndex(index) {
+  if (index < 0 || index >= currentEpisodeList.length) return;
+
+  const ep = currentEpisodeList[index];
+  currentEpisodeIndex = index;
+
+  selectedItem = {
+    type: "series_episode",
+    stream_id: ep.id,
+    container_extension: ep.container_extension || "mp4",
+    name: ep.title || "Episode",
+    cover: selectedItem?.cover || currentSeriesData?.info?.cover || ""
+  };
+
+  refreshDetailActionButtons();
+  updateEpisodeNavButtons();
+  playSelected();
+}
+
+function playNextEpisode() {
+  playEpisodeByIndex(currentEpisodeIndex + 1);
+}
+
+function playPreviousEpisode() {
+  playEpisodeByIndex(currentEpisodeIndex - 1);
+}
+
     function isInWatchlist(item) {
   const list = JSON.parse(localStorage.getItem("watchlist") || "[]");
   const id = getItemId(item);
@@ -896,6 +1160,12 @@ function setProfileList(baseKey, value) {
       const video = document.getElementById("video");
       const liveBadge = document.getElementById("liveBadge");
 
+     showPlayerUI();
+
+const overlay = document.getElementById("playerOverlay");
+overlay.onmousemove = showPlayerUI;
+overlay.onclick = showPlayerUI;
+
       overlay.style.display = "block";
       liveBadge.style.display = mode === "live" ? "block" : "none";
 
@@ -938,35 +1208,58 @@ function setProfileList(baseKey, value) {
         video.play().catch(() => {});
       }
 
-      setupProgressTracking(video, mode);
+      const progress = document.getElementById("playerProgress");
+const currentTimeLabel = document.getElementById("currentTimeLabel");
+const durationLabel = document.getElementById("durationLabel");
+
+video.ontimeupdate = () => {
+  if (mode !== "live" && isFinite(video.duration) && video.duration > 0) {
+    progress.value = (video.currentTime / video.duration) * 100;
+    currentTimeLabel.textContent = formatTime(video.currentTime);
+    durationLabel.textContent = formatTime(video.duration);
+  }
+
+  if (mode === "live" || !selectedItem) return;
+
+  const duration = video.duration;
+  const currentTime = video.currentTime;
+
+  if (!duration || !isFinite(duration) || duration <= 0) return;
+  if (!currentTime || currentTime < 5) return;
+
+  const progressList = JSON.parse(localStorage.getItem("continueWatching") || "[]");
+
+  const id = selectedItem.stream_id || selectedItem.id;
+  const type = selectedItem.type;
+
+  const itemData = {
+    id,
+    type,
+    name: selectedItem.name || "Untitled",
+    poster: selectedItem.stream_icon || selectedItem.cover || "",
+    currentTime,
+    duration,
+    container_extension: selectedItem.container_extension || "mp4",
+    series_id: selectedItem.series_id || null,
+    stream_id: selectedItem.stream_id || null
+  };
+
+  const existingIndex = progressList.findIndex(x => x.id === id && x.type === type);
+
+  if (existingIndex >= 0) {
+    progressList[existingIndex] = itemData;
+  } else {
+    progressList.push(itemData);
+  }
+
+  localStorage.setItem("continueWatching", JSON.stringify(progressList));
+};
+
+progress.oninput = () => {
+  if (!isFinite(video.duration) || video.duration <= 0) return;
+  video.currentTime = (progress.value / 100) * video.duration;
+};
     }
-
-    function setupProgressTracking(video, mode) {
-      video.ontimeupdate = () => {
-        if (mode === "live" || !selectedItem) return;
-
-        const duration = video.duration;
-        const currentTime = video.currentTime;
-
-        if (!duration || !isFinite(duration) || duration <= 0) return;
-        if (!currentTime || currentTime < 5) return;
-
-        const progressList = JSON.parse(localStorage.getItem("continueWatching") || "[]");
-
-        const id = selectedItem.stream_id || selectedItem.id;
-        const type = selectedItem.type;
-
-        const itemData = {
-          id,
-          type,
-          name: selectedItem.name || "Untitled",
-          poster: selectedItem.stream_icon || selectedItem.cover || "",
-          currentTime,
-          duration,
-          container_extension: selectedItem.container_extension || "mp4",
-          series_id: selectedItem.series_id || null,
-          stream_id: selectedItem.stream_id || null
-        };
 
         const existingIndex = progressList.findIndex(x => x.id === id && x.type === type);
 
@@ -1723,6 +2016,9 @@ play(proxyUrl, "live");
       if (!currentSeriesData || !currentSeriesData.episodes) return;
 
       const episodes = currentSeriesData.episodes[seasonKey] || [];
+currentEpisodeList = episodes;
+currentEpisodeIndex = -1;
+updateEpisodeNavButtons();
 
       if (!episodes.length) {
         content.innerHTML = `<div class="message">No episodes found for this season.</div>`;
@@ -1767,16 +2063,20 @@ play(proxyUrl, "live");
         card.appendChild(playBtn);
 
         card.onclick = () => {
-          selectedItem = {
-            type: "series_episode",
-            stream_id: ep.id,
-            container_extension: ep.container_extension || "mp4",
-            name: ep.title || "Episode",
-            cover: selectedItem?.cover || ""
-          };
-          refreshDetailActionButtons();
-          playSelected();
-        };
+  currentEpisodeIndex = episodes.findIndex(x => x.id === ep.id);
+
+  selectedItem = {
+    type: "series_episode",
+    stream_id: ep.id,
+    container_extension: ep.container_extension || "mp4",
+    name: ep.title || "Episode",
+    cover: currentSeriesData?.info?.cover || selectedItem?.cover || ""
+  };
+
+  refreshDetailActionButtons();
+  updateEpisodeNavButtons();
+  playSelected();
+};
 
         content.appendChild(card);
       });
