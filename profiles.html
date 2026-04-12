@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STACKZ Profiles</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      color: white;
+      background:
+        radial-gradient(circle at top, rgba(206,92,240,0.18), transparent 35%),
+        linear-gradient(180deg, #050914 0%, #0a1020 100%);
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 36px 24px;
+    }
+
+    .brand {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: white;
+      text-shadow: 0 0 16px rgba(206,92,240,0.35);
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .brand span {
+      color: #8fd3ff;
+      font-weight: normal;
+    }
+
+    .center-wrap {
+      width: min(1100px, 100%);
+      margin: 0 auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .profiles-view,
+    .editor-view {
+      display: none;
+    }
+
+    .profiles-view.active,
+    .editor-view.active {
+      display: block;
+    }
+
+    .headline {
+      text-align: center;
+      font-size: 38px;
+      font-weight: 800;
+      margin: 0 0 12px;
+    }
+
+    .subhead {
+      text-align: center;
+      color: rgba(255,255,255,0.72);
+      margin: 0 0 34px;
+      font-size: 15px;
+    }
+
+    .profiles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 28px;
+      width: 100%;
+      max-width: 920px;
+      margin: 0 auto;
+    }
+
+    .profile-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.18s ease;
+    }
+
+    .profile-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .profile-avatar {
+      width: 138px;
+      height: 138px;
+      border-radius: 22px;
+      overflow: hidden;
+      border: 3px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.28);
+      transition: 0.18s ease;
+    }
+
+    .profile-card:hover .profile-avatar {
+      border-color: rgba(206,92,240,0.65);
+      box-shadow: 0 0 24px rgba(206,92,240,0.24);
+    }
+
+    .profile-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .profile-name {
+      font-size: 18px;
+      font-weight: 700;
+      text-align: center;
+      color: white;
+      max-width: 140px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .add-profile-box {
+      width: 138px;
+      height: 138px;
+      border-radius: 22px;
+      border: 3px dashed rgba(255,255,255,0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
+      color: rgba(255,255,255,0.85);
+      background: rgba(255,255,255,0.03);
+      transition: 0.18s ease;
+    }
+
+    .profile-card:hover .add-profile-box {
+      border-color: rgba(206,92,240,0.7);
+      color: white;
+      box-shadow: 0 0 24px rgba(206,92,240,0.18);
+    }
+
+    .editor-shell {
+      width: min(1100px, 100%);
+      margin: 0 auto;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 28px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+      overflow: hidden;
+    }
+
+    .editor-top {
+      padding: 28px 28px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .editor-title {
+      font-size: 30px;
+      font-weight: 800;
+      margin: 0 0 8px;
+    }
+
+    .editor-subtitle {
+      margin: 0;
+      color: rgba(255,255,255,0.72);
+      font-size: 15px;
+    }
+
+    .editor-content {
+      padding: 26px 28px 110px;
+    }
+
+    .field-label {
+      display: block;
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 10px;
+    }
+
+    .profile-name-input {
+      width: 100%;
+      max-width: 460px;
+      padding: 15px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      outline: none;
+      color: white;
+      background: rgba(255,255,255,0.06);
+      font-size: 16px;
+      margin-bottom: 26px;
+    }
+
+    .selected-preview-wrap {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .selected-preview {
+      width: 90px;
+      height: 90px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 3px solid rgba(206,92,240,0.65);
+      box-shadow: 0 0 20px rgba(206,92,240,0.22);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .selected-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .selected-text {
+      color: rgba(255,255,255,0.78);
+      font-size: 15px;
+    }
+
+    .avatar-picker-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .avatar-scroll-btn {
+      width: 46px;
+      height: 46px;
+      border: none;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      color: white;
+      font-size: 28px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: 0.18s ease;
+    }
+
+    .avatar-scroll-btn:hover {
+      background: rgba(206,92,240,0.22);
+    }
+
+    .avatar-picker {
+      flex: 1;
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      padding: 8px 2px 12px;
+    }
+
+    .avatar-picker::-webkit-scrollbar {
+      height: 10px;
+    }
+
+    .avatar-picker::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.04);
+      border-radius: 999px;
+    }
+
+    .avatar-picker::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.18);
+      border-radius: 999px;
+    }
+
+    .avatar-option {
+      flex: 0 0 auto;
+      width: 90px;
+      height: 90px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 3px solid transparent;
+      cursor: pointer;
+      background: rgba(255,255,255,0.04);
+      transition: 0.18s ease;
+    }
+
+    .avatar-option img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .avatar-option:hover {
+      transform: translateY(-2px);
+      border-color: rgba(206,92,240,0.45);
+    }
+
+    .avatar-option.selected {
+      border-color: #ce5cf0;
+      box-shadow: 0 0 20px rgba(206,92,240,0.25);
+    }
+
+    .editor-actions {
+      position: sticky;
+      bottom: 0;
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      padding: 18px 28px;
+      background: linear-gradient(180deg, rgba(9,13,24,0.1) 0%, rgba(9,13,24,0.98) 35%);
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 13px 20px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.18s ease;
+    }
+
+    .btn.primary {
+      background: linear-gradient(90deg, #ce5cf0, #9725a3);
+      color: white;
+    }
+
+    .btn.primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(206,92,240,0.28);
+    }
+
+    .btn.secondary {
+      background: rgba(255,255,255,0.08);
+      color: white;
+    }
+
+    .btn.secondary:hover {
+      background: rgba(255,255,255,0.14);
+    }
+
+    @media (max-width: 700px) {
+      .headline {
+        font-size: 30px;
+      }
+
+      .profile-avatar,
+      .add-profile-box {
+        width: 110px;
+        height: 110px;
+      }
+
+      .editor-top,
+      .editor-content,
+      .editor-actions {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .avatar-option {
+        width: 78px;
+        height: 78px;
+      }
+
+      .avatar-scroll-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="brand">STACKZ<span>+</span></div>
+
+    <div class="center-wrap">
+      <div id="profilesView" class="profiles-view active">
+        <h1 class="headline">Who’s watching?</h1>
+        <p class="subhead">Choose a profile or add a new one.</p>
+        <div id="profilesGrid" class="profiles-grid"></div>
+      </div>
+
+      <div id="editorView" class="editor-view">
+        <div class="editor-shell">
+          <div class="editor-top">
+            <h2 class="editor-title">Create Profile</h2>
+            <p class="editor-subtitle">Pick a profile picture and enter a name.</p>
+          </div>
+
+          <div class="editor-content">
+            <label class="field-label" for="profileNameInput">Profile name</label>
+            <input id="profileNameInput" class="profile-name-input" type="text" maxlength="20" placeholder="Enter profile name" />
+
+            <div class="selected-preview-wrap">
+              <div class="selected-preview">
+                <img id="selectedPreviewImage" src="Profile 1.jpg" alt="Selected avatar">
+              </div>
+              <div class="selected-text">Selected avatar: <span id="selectedAvatarText">Profile 1.jpg</span></div>
+            </div>
+
+            <label class="field-label">Choose profile picture</label>
+
+            <div class="avatar-picker-wrap">
+              <button type="button" class="avatar-scroll-btn" onclick="scrollAvatars(-1)">‹</button>
+              <div id="avatarPicker" class="avatar-picker"></div>
+              <button type="button" class="avatar-scroll-btn" onclick="scrollAvatars(1)">›</button>
+            </div>
+          </div>
+
+          <div class="editor-actions">
+            <button class="btn secondary" onclick="cancelProfileEdit()">Cancel</button>
+            <button class="btn primary" onclick="saveProfile()">Save Profile</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const MAX_PROFILES = 8;
+    let selectedAvatar = "Profile 1.jpg";
+
+    function getProfiles() {
+      try {
+        return JSON.parse(localStorage.getItem("profiles") || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function setProfiles(profiles) {
+      localStorage.setItem("profiles", JSON.stringify(profiles));
+    }
+
+    function setActiveProfile(profile) {
+      localStorage.setItem("activeProfile", JSON.stringify(profile));
+    }
+
+    function showProfilesView() {
+      document.getElementById("profilesView").classList.add("active");
+      document.getElementById("editorView").classList.remove("active");
+      renderProfiles();
+    }
+
+    function showEditorView() {
+      document.getElementById("profilesView").classList.remove("active");
+      document.getElementById("editorView").classList.add("active");
+      document.getElementById("profileNameInput").value = "";
+      selectedAvatar = "Profile 1.jpg";
+      updateSelectedAvatarUI();
+      buildAvatarPicker();
+      document.getElementById("profileNameInput").focus();
+    }
+
+    function buildAvatarPicker() {
+      const picker = document.getElementById("avatarPicker");
+      picker.innerHTML = "";
+
+      for (let i = 1; i <= 51; i++) {
+        const fileName = `Profile ${i}.jpg`;
+        const option = document.createElement("div");
+        option.className = "avatar-option" + (fileName === selectedAvatar ? " selected" : "");
+        option.onclick = () => selectAvatar(fileName);
+
+        const img = document.createElement("img");
+        img.src = fileName;
+        img.alt = fileName;
+
+        option.appendChild(img);
+        picker.appendChild(option);
+      }
+    }
+
+    function selectAvatar(fileName) {
+      selectedAvatar = fileName;
+      updateSelectedAvatarUI();
+      document.querySelectorAll(".avatar-option").forEach(option => {
+        const img = option.querySelector("img");
+        option.classList.toggle("selected", img && img.getAttribute("src") === fileName);
+      });
+    }
+
+    function updateSelectedAvatarUI() {
+      document.getElementById("selectedPreviewImage").src = selectedAvatar;
+      document.getElementById("selectedAvatarText").textContent = selectedAvatar;
+    }
+
+    function scrollAvatars(direction) {
+      const picker = document.getElementById("avatarPicker");
+      picker.scrollBy({
+        left: direction * 320,
+        behavior: "smooth"
+      });
+    }
+
+    function renderProfiles() {
+      const grid = document.getElementById("profilesGrid");
+      const profiles = getProfiles();
+      grid.innerHTML = "";
+
+      profiles.forEach(profile => {
+        const card = document.createElement("div");
+        card.className = "profile-card";
+        card.onclick = () => {
+          setActiveProfile(profile);
+          window.location.href = "player.html";
+        };
+
+        card.innerHTML = `
+          <div class="profile-avatar">
+            <img src="${profile.avatar}" alt="${profile.name}">
+          </div>
+          <div class="profile-name">${profile.name}</div>
+        `;
+
+        grid.appendChild(card);
+      });
+
+      if (profiles.length < MAX_PROFILES) {
+        const addCard = document.createElement("div");
+        addCard.className = "profile-card";
+        addCard.onclick = showEditorView;
+        addCard.innerHTML = `
+          <div class="add-profile-box">+</div>
+          <div class="profile-name">Add Profile</div>
+        `;
+        grid.appendChild(addCard);
+      }
+    }
+
+    function cancelProfileEdit() {
+      showProfilesView();
+    }
+
+    function saveProfile() {
+      const nameInput = document.getElementById("profileNameInput");
+      const name = nameInput.value.trim();
+
+      if (!name) {
+        alert("Please enter a profile name.");
+        nameInput.focus();
+        return;
+      }
+
+      const profiles = getProfiles();
+
+      if (profiles.length >= MAX_PROFILES) {
+        alert("You have reached the maximum number of profiles.");
+        return;
+      }
+
+      const newProfile = {
+        id: Date.now(),
+        name,
+        avatar: selectedAvatar
+      };
+
+      profiles.push(newProfile);
+      setProfiles(profiles);
+      setActiveProfile(newProfile);
+      window.location.href = "player.html";
+    }
+
+    renderProfiles();
+  </script>
+</body>
+</html>
