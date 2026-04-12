@@ -584,7 +584,7 @@
 
     <div class="navbar-right">
       <button class="profile-icon-btn" onclick="toggleProfileMenu()">
-        <img id="profileIcon" src="Profile 1.jpg" alt="Profile">
+        <img id="profileIcon" src="Profile 1.png" alt="Profile">
       </button>
 
       <div id="profileDropdown" class="profile-dropdown">
@@ -810,10 +810,14 @@
     function getItemId(item) {
   return item?.stream_id || item?.series_id || item?.id || null;
 }
-  
-    function buildProxyStreamUrl(rawUrl) {
-  return `${window.location.origin}/proxy-stream?url=${encodeURIComponent(rawUrl)}`;
+
+function setProfileList(baseKey, value) {
+  localStorage.setItem(getProfileStorageKey(baseKey), JSON.stringify(value));
 }
+    
+    function buildProxyStreamUrl(rawUrl) {
+                return `${window.location.origin}/proxy-stream?url=${encodeURIComponent(rawUrl)}`;
+           }
 
     function isInWatchlist(item) {
   const list = JSON.parse(localStorage.getItem("watchlist") || "[]");
@@ -1464,16 +1468,10 @@ play(buildProxyStreamUrl(rawUrl), "direct");
         card.appendChild(label);
 
         card.onclick = () => {
-  selectedItem = {
-    type: "series_episode",
-    stream_id: ep.id,
-    container_extension: ep.container_extension || "mp4",
-    name: ep.title || "Episode",
-    cover: selectedItem?.cover || ""
-  };
-  refreshDetailActionButtons();
-  playSelected();
-};
+          const rawUrl = `${dns.replace("http://","https://")}/live/${username}/${password}/${c.stream_id}.m3u8`;
+const proxyUrl = `${window.location.origin}/proxy-stream?url=${encodeURIComponent(rawUrl)}`;
+play(proxyUrl, "live");
+        };
 
         grid.appendChild(card);
       });
@@ -1637,67 +1635,68 @@ play(buildProxyStreamUrl(rawUrl), "direct");
     });
 
     function runGlobalSearch(value) {
-  const results = document.getElementById("searchResults");
-  results.innerHTML = "";
+      const results = document.getElementById("searchResults");
+      results.innerHTML = "";
 
-  const query = value.toLowerCase().trim();
+      const query = value.toLowerCase().trim();
 
-  if (!query) {
-    showMessage("searchResults", "Start typing to search Live TV, Movies, and Series.");
-    return;
-  }
+      if (!query) {
+        showMessage("searchResults", "Start typing to search Live TV, Movies, and Series.");
+        return;
+      }
 
-  const liveMatches = liveChannels
-    .filter(item => (item.name || "").toLowerCase().includes(query))
-    .slice(0, 20)
-    .map(item => ({ ...item, resultType: "live" }));
+      const liveMatches = liveChannels
+        .filter(item => (item.name || "").toLowerCase().includes(query))
+        .slice(0, 20)
+        .map(item => ({ ...item, resultType: "live" }));
 
-  const movieMatches = movies
-    .filter(item => (item.name || "").toLowerCase().includes(query))
-    .slice(0, 20)
-    .map(item => ({ ...item, resultType: "movie" }));
+      const movieMatches = movies
+        .filter(item => (item.name || "").toLowerCase().includes(query))
+        .slice(0, 20)
+        .map(item => ({ ...item, resultType: "movie" }));
 
-  const seriesMatches = seriesData
-    .filter(item => (item.name || "").toLowerCase().includes(query))
-    .slice(0, 20)
-    .map(item => ({ ...item, resultType: "series" }));
+      const seriesMatches = seriesData
+        .filter(item => (item.name || "").toLowerCase().includes(query))
+        .slice(0, 20)
+        .map(item => ({ ...item, resultType: "series" }));
 
-  const combined = [...liveMatches, ...movieMatches, ...seriesMatches];
+      const combined = [...liveMatches, ...movieMatches, ...seriesMatches];
 
-  if (!combined.length) {
-    showMessage("searchResults", "No results found.");
-    return;
-  }
+      if (!combined.length) {
+        showMessage("searchResults", "No results found.");
+        return;
+      }
 
-  combined.forEach(item => {
-    const card = document.createElement("div");
-    card.className = "card";
+      combined.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "card";
 
-    const img = document.createElement("img");
-    img.src = item.stream_icon || item.cover || "";
-    img.alt = item.name || "";
+        const img = document.createElement("img");
+        img.src = item.stream_icon || item.cover || "";
+        img.alt = item.name || "";
 
-    const label = document.createElement("div");
-    label.className = "label";
-    label.textContent = `${item.name || "Untitled"} • ${item.resultType.toUpperCase()}`;
+        const label = document.createElement("div");
+        label.className = "label";
+        label.textContent = `${item.name || "Untitled"} • ${item.resultType.toUpperCase()}`;
 
-    card.appendChild(img);
-    card.appendChild(label);
+        card.appendChild(img);
+        card.appendChild(label);
 
-    if (item.resultType === "live") {
-      card.onclick = () => {
-        const rawUrl = `${dns.replace("http://","https://")}/live/${username}/${password}/${item.stream_id}.m3u8`;
-        play(buildProxyStreamUrl(rawUrl), "live");
-      };
-    } else if (item.resultType === "movie") {
-      card.onclick = () => openDetails(item, "movies");
-    } else if (item.resultType === "series") {
-      card.onclick = () => openDetails(item, "series");
+        if (item.resultType === "live") {
+          card.onclick = () => {
+            const rawUrl = `${dns.replace("http://","https://")}/live/${username}/${password}/${item.stream_id}.m3u8`;
+const proxyUrl = `${window.location.origin}/proxy-stream?url=${encodeURIComponent(rawUrl)}`;
+play(proxyUrl, "live");
+          };
+        } else if (item.resultType === "movie") {
+          card.onclick = () => openDetails(item, "movies");
+        } else if (item.resultType === "series") {
+          card.onclick = () => openDetails(item, "series");
+        }
+
+        results.appendChild(card);
+      });
     }
-
-    results.appendChild(card);
-  });
-}
 
     document.getElementById("globalSearch").addEventListener("input", function () {
       runGlobalSearch(this.value);
@@ -1902,4 +1901,19 @@ play(buildProxyStreamUrl(rawUrl), "direct");
             refreshDetailActionButtons();
 
             setDetailsUI({
-              kicker: "Serie
+              kicker: "Series",
+              title: item.name || "Series",
+              poster: item.cover || "",
+              backdrop: item.cover || "",
+              plot: "Details could not load.",
+              chips: []
+            });
+          });
+      }
+    }
+
+    loadProfileIcon();
+    loadHomePage();
+  </script>
+</body>
+</html>
