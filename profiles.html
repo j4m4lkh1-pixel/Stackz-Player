@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/png" href="favicon.png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Select a Profile</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      color: white;
+      background:
+        radial-gradient(circle at top, rgba(206,92,240,0.18), transparent 35%),
+        linear-gradient(180deg, #050914 0%, #0a1020 100%);
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 36px 24px;
+    }
+
+    .brand {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: white;
+      text-shadow: 0 0 16px rgba(206,92,240,0.35);
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .brand span {
+      color: #8fd3ff;
+      font-weight: normal;
+    }
+
+    .center-wrap {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .profiles-view,
+    .editor-view {
+      display: none;
+    }
+
+    .profiles-view.active,
+    .editor-view.active {
+      display: block;
+    }
+
+    .headline {
+      text-align: center;
+      font-size: 38px;
+      font-weight: 800;
+      margin: 0 0 12px;
+    }
+
+    .subhead {
+      text-align: center;
+      color: rgba(255,255,255,0.72);
+      margin: 0 0 34px;
+      font-size: 15px;
+    }
+
+    .profiles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 30px;
+      width: 100%;
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    .profile-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      user-select: none;
+    }
+
+    .profile-main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      transition: transform 0.18s ease;
+      width: 100%;
+    }
+
+    .profile-main:hover {
+      transform: translateY(-4px);
+    }
+
+    .profile-avatar {
+      width: 148px;
+      height: 148px;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 3px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.28);
+      transition: 0.18s ease;
+      position: relative;
+    }
+
+    .profile-main:hover .profile-avatar {
+      border-color: rgba(206,92,240,0.65);
+      box-shadow: 0 0 24px rgba(206,92,240,0.24);
+    }
+
+    .profile-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .lock-badge {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.72);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.22);
+    }
+
+    .profile-name {
+      font-size: 18px;
+      font-weight: 700;
+      text-align: center;
+      color: white;
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .profile-actions-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .dots-btn {
+      width: 38px;
+      height: 38px;
+      border: none;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      color: white;
+      cursor: pointer;
+      font-size: 22px;
+      line-height: 1;
+      transition: 0.18s ease;
+    }
+
+    .dots-btn:hover {
+      background: rgba(206,92,240,0.22);
+      transform: translateY(-1px);
+    }
+
+    .add-profile-box {
+      width: 148px;
+      height: 148px;
+      border-radius: 24px;
+      border: 3px dashed rgba(255,255,255,0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
+      color: rgba(255,255,255,0.85);
+      background: rgba(255,255,255,0.03);
+      transition: 0.18s ease;
+    }
+
+    .profile-main:hover .add-profile-box {
+      border-color: rgba(206,92,240,0.7);
+      color: white;
+      box-shadow: 0 0 24px rgba(206,92,240,0.18);
+    }
+
+    .editor-shell {
+      width: min(1240px, 100%);
+      margin: 0 auto;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 28px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+      overflow: hidden;
+    }
+
+    .editor-top {
+      padding: 28px 28px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .editor-top-left {
+      min-width: 0;
+    }
+
+    .editor-title {
+      font-size: 30px;
+      font-weight: 800;
+      margin: 0 0 8px;
+    }
+
+    .editor-subtitle {
+      margin: 0;
+      color: rgba(255,255,255,0.72);
+      font-size: 15px;
+    }
+
+    .skip-btn {
+      border: none;
+      border-radius: 14px;
+      padding: 14px 22px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      background: linear-gradient(90deg, #8da2ff, #90a7ff);
+      color: white;
+      min-width: 110px;
+      transition: 0.18s ease;
+      flex-shrink: 0;
+    }
+
+    .skip-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(141,162,255,0.28);
+    }
+
+    .editor-content {
+      padding: 26px 28px 110px;
+    }
+
+    .field-label {
+      display: block;
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 10px;
+    }
+
+    .profile-name-input {
+      width: 100%;
+      max-width: 520px;
+      padding: 15px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      outline: none;
+      color: white;
+      background: rgba(255,255,255,0.06);
+      font-size: 16px;
+      margin-bottom: 26px;
+    }
+
+    .selected-preview-wrap {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .selected-preview {
+      width: 108px;
+      height: 108px;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 3px solid rgba(206,92,240,0.65);
+      box-shadow: 0 0 20px rgba(206,92,240,0.22);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .selected-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .selected-text {
+      color: rgba(255,255,255,0.78);
+      font-size: 15px;
+    }
+
+    .avatar-picker-wrap {
+      margin-top: 10px;
+    }
+
+    .avatar-picker {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+      gap: 22px;
+      max-height: 540px;
+      overflow-y: auto;
+      padding: 10px 4px 14px;
+    }
+
+    .avatar-picker::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .avatar-picker::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.04);
+      border-radius: 999px;
+    }
+
+    .avatar-picker::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.18);
+      border-radius: 999px;
+    }
+
+    .avatar-option {
+      width: 132px;
+      height: 132px;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 5px solid transparent;
+      cursor: pointer;
+      background: rgba(255,255,255,0.04);
+      transition: 0.18s ease;
+      justify-self: center;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.22);
+    }
+
+    .avatar-option img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .avatar-option:hover {
+      transform: translateY(-2px) scale(1.03);
+      border-color: rgba(206,92,240,0.45);
+    }
+
+    .avatar-option.selected {
+      border-color: #ffffff;
+      box-shadow: 0 0 22px rgba(255,255,255,0.24);
+    }
+
+    .editor-actions {
+      position: sticky;
+      bottom: 0;
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      padding: 18px 28px;
+      background: linear-gradient(180deg, rgba(9,13,24,0.1) 0%, rgba(9,13,24,0.98) 35%);
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 13px 20px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.18s ease;
+    }
+
+    .btn.primary {
+      background: linear-gradient(90deg, #ce5cf0, #9725a3);
+      color: white;
+    }
+
+    .btn.primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(206,92,240,0.28);
+    }
+
+    .btn.secondary {
+      background: rgba(255,255,255,0.08);
+      color: white;
+    }
+
+    .btn.secondary:hover {
+      background: rgba(255,255,255,0.14);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.78);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-box {
+      width: min(440px, 100%);
+      background: rgba(17, 24, 39, 0.96);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+    }
+
+    .modal-title {
+      font-size: 24px;
+      font-weight: 800;
+      margin: 0 0 10px;
+      color: #ce5cf0;
+    }
+
+    .modal-text {
+      color: rgba(255,255,255,0.8);
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .profile-menu-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .menu-btn {
+      border: none;
+      border-radius: 16px;
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      color: white;
+      background: rgba(255,255,255,0.08);
+      transition: 0.18s ease;
+    }
+
+    .menu-btn:hover {
+      background: rgba(206,92,240,0.22);
+    }
+
+    .menu-btn.danger:hover {
+      background: rgba(220, 53, 69, 0.28);
+    }
+
+    .pin-inputs {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 20px 0 22px;
+    }
+
+    .pin-box {
+      width: 58px;
+      height: 68px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.08);
+      color: white;
+      font-size: 28px;
+      text-align: center;
+      outline: none;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 700px) {
+      .headline {
+        font-size: 30px;
+      }
+
+      .profile-avatar,
+      .add-profile-box {
+        width: 118px;
+        height: 118px;
+      }
+
+      .editor-top,
+      .editor-content,
+      .editor-actions {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .editor-top {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .skip-btn {
+        width: 100%;
+      }
+
+      .avatar-picker {
+        grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+        gap: 16px;
+      }
+
+      .avatar-option {
+        width: 96px;
+        height: 96px;
+      }
+
+      .pin-box {
+        width: 50px;
+        height: 60px;
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="brand">STACKZ<span>+</span></div>
+
+    <div class="center-wrap">
+      <div id="profilesView" class="profiles-view active">
+        <h1 class="headline">Who’s watching?</h1>
+        <p class="subhead">Choose a profile or add a new one.</p>
+        <div id="profilesGrid" class="profiles-grid"></div>
+      </div>
+
+      <div id="editorView" class="editor-view">
+        <div class="editor-shell">
+          <div class="editor-top">
+            <div class="editor-top-left">
+              <h2 id="editorTitle" class="editor-title">Choose Icon</h2>
+              <p class="editor-subtitle">Pick a profile picture and enter a name.</p>
+            </div>
+            <button id="skipBtn" class="skip-btn" onclick="skipAvatarSelection()">SKIP</button>
+          </div>
+
+          <div class="editor-content">
+            <label class="field-label" for="profileNameInput">Profile name</label>
+            <input id="profileNameInput" class="profile-name-input" type="text" maxlength="20" placeholder="Enter profile name" />
+
+            <div class="selected-preview-wrap">
+              <div class="selected-preview">
+                <img id="selectedPreviewImage" src="Profile 1.jpg" alt="Selected avatar">
+              </div>
+              <div class="selected-text">Selected avatar: <span id="selectedAvatarText">Profile 1.jpg</span></div>
+            </div>
+
+            <label class="field-label">Choose profile picture</label>
+
+            <div class="avatar-picker-wrap">
+              <div id="avatarPicker" class="avatar-picker"></div>
+            </div>
+          </div>
+
+          <div class="editor-actions">
+            <button class="btn secondary" onclick="cancelProfileEdit()">Cancel</button>
+            <button id="saveProfileBtn" class="btn primary" onclick="saveProfile()">Save Profile</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="profileMenuModal" class="modal-overlay">
+    <div class="modal-box">
+      <h3 class="modal-title">Profile Options</h3>
+      <p id="profileMenuText" class="modal-text">Manage this profile.</p>
+      <div class="profile-menu-list">
+        <button class="menu-btn danger" onclick="deleteSelectedProfile()">Delete this profile</button>
+        <button class="menu-btn" onclick="openSetChildLock()">Set child lock</button>
+        <button class="menu-btn" onclick="openRemoveChildLock()">Remove child lock</button>
+        <button class="menu-btn" onclick="editSelectedProfile()">Edit profile</button>
+        <button class="menu-btn" onclick="closeProfileMenu()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="pinModal" class="modal-overlay">
+    <div class="modal-box">
+      <h3 id="pinModalTitle" class="modal-title">Enter PIN</h3>
+      <p id="pinModalText" class="modal-text">Enter your 4-digit PIN.</p>
+
+      <div class="pin-inputs">
+        <input class="pin-box" type="password" inputmode="numeric" maxlength="1">
+        <input class="pin-box" type="password" inputmode="numeric" maxlength="1">
+        <input class="pin-box" type="password" inputmode="numeric" maxlength="1">
+        <input class="pin-box" type="password" inputmode="numeric" maxlength="1">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn secondary" onclick="closePinModal()">Cancel</button>
+        <button class="btn primary" onclick="submitPinAction()">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+function showPopup(message) {
+  const popup = document.getElementById("customPopup");
+  popup.textContent = message;
+
+  popup.style.opacity = "1";
+  popup.style.transform = "translateX(-50%) translateY(0)";
+
+  setTimeout(() => {
+    popup.style.opacity = "0";
+    popup.style.transform = "translateX(-50%) translateY(20px)";
+  }, 2500);
+}
+    const MAX_PROFILES = 8;
+    const DEFAULT_AVATAR = "Profile 70.jpg";
+
+    let selectedAvatar = "Profile 1.jpg";
+    let editingProfileId = null;
+    let selectedProfileMenuId = null;
+    let pinMode = null;
+    let pinProfileId = null;
+
+    function getProfiles() {
+      try {
+        return JSON.parse(localStorage.getItem("profiles") || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function setProfiles(profiles) {
+      localStorage.setItem("profiles", JSON.stringify(profiles));
+    }
+
+    function setActiveProfile(profile) {
+      localStorage.setItem("activeProfile", JSON.stringify(profile));
+    }
+
+    function getProfileById(id) {
+      return getProfiles().find(profile => profile.id === id) || null;
+    }
+
+    function showProfilesView() {
+      document.getElementById("profilesView").classList.add("active");
+      document.getElementById("editorView").classList.remove("active");
+      renderProfiles();
+    }
+
+    function showEditorView(profile = null) {
+      document.getElementById("profilesView").classList.remove("active");
+      document.getElementById("editorView").classList.add("active");
+
+      const nameInput = document.getElementById("profileNameInput");
+      const title = document.getElementById("editorTitle");
+      const saveBtn = document.getElementById("saveProfileBtn");
+      const skipBtn = document.getElementById("skipBtn");
+
+      if (profile) {
+        editingProfileId = profile.id;
+        selectedAvatar = profile.avatar || "Profile 1.jpg";
+        nameInput.value = profile.name || "";
+        title.textContent = "Edit Profile";
+        saveBtn.textContent = "Save Changes";
+        skipBtn.style.display = "none";
+      } else {
+        editingProfileId = null;
+        selectedAvatar = "Profile 1.jpg";
+        nameInput.value = "";
+        title.textContent = "Choose Icon";
+        saveBtn.textContent = "Save Profile";
+        skipBtn.style.display = "inline-block";
+      }
+
+      updateSelectedAvatarUI();
+      buildAvatarPicker();
+      nameInput.focus();
+    }
+
+    function buildAvatarPicker() {
+      const picker = document.getElementById("avatarPicker");
+      picker.innerHTML = "";
+
+      for (let i = 1; i <= 86; i++) {
+        const fileName = `Profile ${i}.jpg`;
+        const option = document.createElement("div");
+        option.className = "avatar-option" + (fileName === selectedAvatar ? " selected" : "");
+        option.onclick = () => selectAvatar(fileName);
+
+        const img = document.createElement("img");
+        img.src = fileName;
+        img.alt = fileName;
+
+        option.appendChild(img);
+        picker.appendChild(option);
+      }
+    }
+
+    function selectAvatar(fileName) {
+      selectedAvatar = fileName;
+      updateSelectedAvatarUI();
+      document.querySelectorAll(".avatar-option").forEach(option => {
+        const img = option.querySelector("img");
+        option.classList.toggle("selected", img && img.getAttribute("src") === fileName);
+      });
+    }
+
+    function updateSelectedAvatarUI() {
+      document.getElementById("selectedPreviewImage").src = selectedAvatar;
+      document.getElementById("selectedAvatarText").textContent = selectedAvatar;
+    }
+
+    function skipAvatarSelection() {
+      if (editingProfileId !== null) {
+        return;
+      }
+      selectedAvatar = DEFAULT_AVATAR;
+      updateSelectedAvatarUI();
+      saveProfile();
+    }
+
+    function renderProfiles() {
+      const grid = document.getElementById("profilesGrid");
+      const profiles = getProfiles();
+      grid.innerHTML = "";
+
+      profiles.forEach(profile => {
+        const card = document.createElement("div");
+        card.className = "profile-card";
+
+        const main = document.createElement("div");
+        main.className = "profile-main";
+        main.onclick = () => openProfile(profile);
+
+        const avatar = document.createElement("div");
+        avatar.className = "profile-avatar";
+
+        const img = document.createElement("img");
+        img.src = profile.avatar;
+        img.alt = profile.name;
+
+        avatar.appendChild(img);
+
+        if (profile.childLockPin) {
+          const lock = document.createElement("div");
+          lock.className = "lock-badge";
+          lock.textContent = "🔒";
+          avatar.appendChild(lock);
+        }
+
+        const name = document.createElement("div");
+        name.className = "profile-name";
+        name.textContent = profile.name;
+
+        main.appendChild(avatar);
+        main.appendChild(name);
+
+        const actions = document.createElement("div");
+        actions.className = "profile-actions-row";
+
+        const dotsBtn = document.createElement("button");
+        dotsBtn.className = "dots-btn";
+        dotsBtn.type = "button";
+        dotsBtn.textContent = "⋯";
+        dotsBtn.onclick = (e) => {
+          e.stopPropagation();
+          openProfileMenu(profile.id);
+        };
+
+        actions.appendChild(dotsBtn);
+
+        card.appendChild(main);
+        card.appendChild(actions);
+
+        grid.appendChild(card);
+      });
+
+      if (profiles.length < MAX_PROFILES) {
+        const addCard = document.createElement("div");
+        addCard.className = "profile-card";
+
+        const addMain = document.createElement("div");
+        addMain.className = "profile-main";
+        addMain.onclick = () => showEditorView();
+
+        addMain.innerHTML = `
+          <div class="add-profile-box">+</div>
+          <div class="profile-name">Add Profile</div>
+        `;
+
+        addCard.appendChild(addMain);
+        grid.appendChild(addCard);
+      }
+    }
+
+    function openProfile(profile) {
+      if (profile.childLockPin) {
+        openPinModal("enter", profile.id);
+        return;
+      }
+
+      setActiveProfile(profile);
+      window.location.href = "loading.html";
+    }
+
+    function cancelProfileEdit() {
+      showProfilesView();
+    }
+
+    function saveProfile() {
+      const nameInput = document.getElementById("profileNameInput");
+      const name = nameInput.value.trim();
+
+      if (!name) {
+        showPopup("Please enter a profile name.");
+        nameInput.focus();
+        return;
+      }
+
+      const profiles = getProfiles();
+
+      if (editingProfileId === null && profiles.length >= MAX_PROFILES) {
+        showPopup("You have reached the maximum number of profiles.");
+        return;
+      }
+
+      if (editingProfileId !== null) {
+        const profileIndex = profiles.findIndex(profile => profile.id === editingProfileId);
+        if (profileIndex === -1) {
+          showPopup("Profile not found.");
+          showProfilesView();
+          return;
+        }
+
+        profiles[profileIndex] = {
+          ...profiles[profileIndex],
+          name,
+          avatar: selectedAvatar
+        };
+
+        setProfiles(profiles);
+        showProfilesView();
+        return;
+      }
+
+      const newProfile = {
+        id: Date.now(),
+        name,
+        avatar: selectedAvatar,
+        childLockPin: null
+      };
+
+      profiles.push(newProfile);
+      setProfiles(profiles);
+      setActiveProfile(newProfile);
+      window.location.href = "player.html";
+    }
+
+    function openProfileMenu(profileId) {
+      selectedProfileMenuId = profileId;
+      const profile = getProfileById(profileId);
+      document.getElementById("profileMenuText").textContent = profile
+        ? `Manage ${profile.name}.`
+        : "Manage this profile.";
+      document.getElementById("profileMenuModal").classList.add("active");
+    }
+
+    function closeProfileMenu() {
+      selectedProfileMenuId = null;
+      document.getElementById("profileMenuModal").classList.remove("active");
+    }
+
+    function deleteSelectedProfile() {
+      const profile = getProfileById(selectedProfileMenuId);
+      if (!profile) {
+        closeProfileMenu();
+        return;
+      }
+
+      const confirmed = confirm(`Delete profile "${profile.name}"?`);
+      if (!confirmed) return;
+
+      const profiles = getProfiles().filter(p => p.id !== selectedProfileMenuId);
+      setProfiles(profiles);
+
+      const activeProfile = JSON.parse(localStorage.getItem("activeProfile") || "null");
+      if (activeProfile && activeProfile.id === selectedProfileMenuId) {
+        localStorage.removeItem("activeProfile");
+      }
+
+      closeProfileMenu();
+      renderProfiles();
+    }
+
+    function editSelectedProfile() {
+      const profile = getProfileById(selectedProfileMenuId);
+      closeProfileMenu();
+
+      if (!profile) {
+        showPopup("Profile not found.");
+        return;
+      }
+
+      showEditorView(profile);
+    }
+
+    function openSetChildLock() {
+      const profile = getProfileById(selectedProfileMenuId);
+      closeProfileMenu();
+
+      if (!profile) {
+        showPopup("Profile not found.");
+        return;
+      }
+
+      openPinModal("set", profile.id);
+    }
+
+    function openRemoveChildLock() {
+      const profile = getProfileById(selectedProfileMenuId);
+      closeProfileMenu();
+
+      if (!profile) {
+        showPopup("Profile not found.");
+        return;
+      }
+
+      if (!profile.childLockPin) {
+        showPopup("This profile does not have a child lock set.");
+        return;
+      }
+
+      openPinModal("remove", profile.id);
+    }
+
+    function openPinModal(mode, profileId) {
+      pinMode = mode;
+      pinProfileId = profileId;
+
+      const profile = getProfileById(profileId);
+      const modal = document.getElementById("pinModal");
+      const title = document.getElementById("pinModalTitle");
+      const text = document.getElementById("pinModalText");
+
+      if (mode === "set") {
+        title.textContent = "Set Child Lock";
+        text.textContent = `Set a 4-digit PIN for ${profile?.name || "this profile"}.`;
+      } else if (mode === "remove") {
+        title.textContent = "Remove Child Lock";
+        text.textContent = `Enter the 4-digit PIN to remove child lock from ${profile?.name || "this profile"}.`;
+      } else if (mode === "enter") {
+        title.textContent = "Enter Child Lock PIN";
+        text.textContent = `Enter the 4-digit PIN for ${profile?.name || "this profile"}.`;
+      }
+
+      clearPinInputs();
+      modal.classList.add("active");
+
+      const first = document.querySelector(".pin-box");
+      if (first) first.focus();
+    }
+
+    function closePinModal() {
+      pinMode = null;
+      pinProfileId = null;
+      document.getElementById("pinModal").classList.remove("active");
+      clearPinInputs();
+    }
+
+    function clearPinInputs() {
+      document.querySelectorAll(".pin-box").forEach(box => {
+        box.value = "";
+      });
+    }
+
+    function getEnteredPin() {
+      return Array.from(document.querySelectorAll(".pin-box")).map(box => box.value).join("");
+    }
+
+    function submitPinAction() {
+      const pin = getEnteredPin();
+
+      if (!/^\d{4}$/.test(pin)) {
+        showPopup("Please enter a 4-digit PIN.");
+        return;
+      }
+
+      const profiles = getProfiles();
+      const index = profiles.findIndex(profile => profile.id === pinProfileId);
+
+      if (index === -1) {
+        closePinModal();
+        showPopup("Profile not found.");
+        return;
+      }
+
+      const profile = profiles[index];
+
+      if (pinMode === "set") {
+        profiles[index].childLockPin = pin;
+        setProfiles(profiles);
+        closePinModal();
+        renderProfiles();
+        showPopup("Child lock set.");
+        return;
+      }
+
+      if (pinMode === "remove") {
+        if (!profile.childLockPin) {
+          closePinModal();
+          showPopup("This profile does not have a child lock set.");
+          return;
+        }
+
+        if (profile.childLockPin !== pin) {
+          showPopup("Incorrect PIN.");
+          clearPinInputs();
+          const first = document.querySelector(".pin-box");
+          if (first) first.focus();
+          return;
+        }
+
+        profiles[index].childLockPin = null;
+        setProfiles(profiles);
+        closePinModal();
+        renderProfiles();
+        showPopup("Child lock removed.");
+        return;
+      }
+
+      if (pinMode === "enter") {
+        if (!profile.childLockPin) {
+          closePinModal();
+          setActiveProfile(profile);
+          window.location.href = "loading.html";
+          return;
+        }
+
+        if (profile.childLockPin !== pin) {
+          showPopup("Incorrect PIN.");
+          clearPinInputs();
+          const first = document.querySelector(".pin-box");
+          if (first) first.focus();
+          return;
+        }
+
+        closePinModal();
+        setActiveProfile(profile);
+        window.location.href = "loading.html";
+      }
+    }
+
+    document.querySelectorAll(".pin-box").forEach((box, index, boxes) => {
+      box.addEventListener("input", () => {
+        box.value = box.value.replace(/\D/g, "");
+        if (box.value && index < boxes.length - 1) {
+          boxes[index + 1].focus();
+        }
+      });
+
+      box.addEventListener("keydown", (e) => {
+        if (e.key === "Backspace" && !box.value && index > 0) {
+          boxes[index - 1].focus();
+        }
+      });
+    });
+
+    document.getElementById("profileMenuModal").addEventListener("click", (e) => {
+      if (e.target.id === "profileMenuModal") {
+        closeProfileMenu();
+      }
+    });
+
+    document.getElementById("pinModal").addEventListener("click", (e) => {
+      if (e.target.id === "pinModal") {
+        closePinModal();
+      }
+    });
+
+    renderProfiles();
+  </script>
+<div id="customPopup" style="
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: linear-gradient(90deg, #ce5cf0, #9725a3);
+  color: white;
+  padding: 14px 22px;
+  border-radius: 999px;
+  font-weight: bold;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.3s ease;
+  z-index: 99999;
+">
+  Message
+</div>
+</body>
+</html>
