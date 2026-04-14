@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Enter Login Details</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Orbitron', sans-serif;
+      color: white;
+      background: black;
+    }
+
+    .bg-video {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -2;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 0, 20, 0.55);
+      z-index: -1;
+    }
+
+    .wrap {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-box {
+      position: relative;
+      width: 420px;
+      max-width: 92%;
+      padding: 34px 28px;
+      border-radius: 24px;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(14px);
+      box-shadow:
+        0 0 18px rgba(206, 92, 240, 0.28),
+        0 0 42px rgba(151, 37, 163, 0.24);
+      overflow: hidden;
+    }
+
+    .login-box::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      padding: 2px;
+      border-radius: 24px;
+      background: linear-gradient(90deg, #ff4fd8, #ce5cf0, #8fd3ff, #ff4fd8);
+      background-size: 300% 300%;
+      animation: borderMove 5s linear infinite;
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    @keyframes borderMove {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 300% 50%; }
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      text-align: center;
+      font-size: 30px;
+      text-shadow: 0 0 16px rgba(255, 138, 252, 0.6);
+    }
+
+    .subtitle {
+      text-align: center;
+      margin-bottom: 24px;
+      color: rgba(255,255,255,0.75);
+      font-size: 13px;
+      letter-spacing: 0.4px;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 14px 15px;
+      margin-bottom: 14px;
+      border: none;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.1);
+      color: white;
+      outline: none;
+      font-family: inherit;
+    }
+
+    input::placeholder {
+      color: rgba(255,255,255,0.62);
+    }
+
+    .save-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 4px 0 18px;
+      color: rgba(255,255,255,0.88);
+      font-size: 13px;
+    }
+
+    .save-row input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      accent-color: #ce5cf0;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(90deg, #ce5cf0, #9725a3);
+      color: white;
+      font-family: inherit;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 0 16px rgba(206,92,240,0.35);
+      transition: 0.18s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 22px rgba(206,92,240,0.48);
+    }
+
+    .secondary-btn {
+      margin-top: 12px;
+      background: rgba(255,255,255,0.12);
+      box-shadow: none;
+    }
+
+    .status {
+      margin-top: 16px;
+      min-height: 18px;
+      text-align: center;
+      font-size: 12px;
+      color: #f4c9ff;
+    }
+
+    #noticeOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .notice-box {
+      width: 520px;
+      max-width: 92%;
+      background: rgba(17, 24, 39, 0.95);
+      border-radius: 20px;
+      padding: 30px 24px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .notice-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 16px;
+      color: #ce5cf0;
+      text-shadow: 0 0 16px rgba(206,92,240,0.35);
+    }
+
+    .notice-text {
+      font-size: 14px;
+      line-height: 1.7;
+      margin-bottom: 22px;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .notice-btn {
+      width: auto;
+      min-width: 180px;
+      padding: 13px 22px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(90deg, #ce5cf0, #8fd3ff);
+      color: white;
+      font-family: inherit;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 0 16px rgba(206,92,240,0.35);
+    }
+
+    .add-service-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10001;
+      width: auto;
+      min-width: 180px;
+      padding: 13px 22px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(90deg, #ce5cf0, #8fd3ff);
+      color: white;
+      font-family: inherit;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 0 16px rgba(206,92,240,0.35);
+    }
+  </style>
+</head>
+<body>
+  <button class="add-service-btn" onclick="window.location.href='add-service.html'">Add your service</button>
+
+  <div id="noticeOverlay">
+    <div class="notice-box">
+      <div class="notice-title">Important Notice</div>
+      <div class="notice-text">
+        Stackz Player is strictly a standalone media player. It does not provide, host, sell, or promote any media content, TV channels, or streaming services. Users must add and manage their own legally acquired media.
+      </div>
+      <button class="notice-btn" onclick="closeNotice()">I understand</button>
+    </div>
+  </div>
+
+  <video class="bg-video" autoplay muted loop playsinline>
+    <source src="Background.mp4" type="video/mp4">
+  </video>
+
+  <div class="wrap">
+    <div class="login-box">
+      <h1>Login</h1>
+      <div class="subtitle">Welcome to STACKZ Player</div>
+
+      <input id="username" type="text" placeholder="Username">
+      <input id="password" type="password" placeholder="Password">
+
+      <label class="save-row">
+        <input id="saveLogin" type="checkbox">
+        <span>Save this login</span>
+      </label>
+
+      <button onclick="doLogin()">Continue</button>
+      <button class="secondary-btn" onclick="clearSavedLogin()">Forget saved login</button>
+
+      <div id="status" class="status"></div>
+    </div>
+  </div>
+
+  <script>
+    const statusEl = document.getElementById("status");
+
+    function setStatus(text) {
+      statusEl.textContent = text || "";
+    }
+
+    function hasSavedLogin() {
+      const username = localStorage.getItem("username");
+      const password = localStorage.getItem("password");
+      const saveLogin = localStorage.getItem("saveLogin");
+      return !!(username && password && saveLogin === "true");
+    }
+
+    function prefillFields() {
+      document.getElementById("username").value = localStorage.getItem("username") || "";
+      document.getElementById("password").value = localStorage.getItem("password") || "";
+      document.getElementById("saveLogin").checked = localStorage.getItem("saveLogin") === "true";
+    }
+
+    async function doLogin() {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const saveLogin = document.getElementById("saveLogin").checked;
+
+      if (!username || !password) {
+        setStatus("Please enter username and password.");
+        return;
+      }
+
+      setStatus("Checking login...");
+
+      try {
+        const response = await fetch(
+          `${window.location.origin}/validate-login?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+        );
+
+        const data = await response.json();
+
+        if (!data.success) {
+          alert("ERROR - Wrong Credentials or expired");
+          setStatus("");
+          return;
+        }
+
+        localStorage.setItem("username", username);
+        localStorage.setItem("password", password);
+        localStorage.setItem("saveLogin", saveLogin ? "true" : "false");
+
+        setStatus("Opening profiles...");
+        window.location.href = "profiles.html";
+      } catch (err) {
+        console.log("Login error:", err);
+        alert("ERROR - Wrong Credentials or expired");
+        setStatus("");
+      }
+    }
+
+    function clearSavedLogin() {
+      localStorage.removeItem("username");
+      localStorage.removeItem("password");
+      localStorage.removeItem("saveLogin");
+      localStorage.removeItem("activeProfile");
+      setStatus("Saved login removed.");
+      prefillFields();
+    }
+
+    function closeNotice() {
+      document.getElementById("noticeOverlay").style.display = "none";
+      localStorage.setItem("stackz_notice_seen", "true");
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") doLogin();
+    });
+
+    prefillFields();
+
+    if (localStorage.getItem("stackz_notice_seen") === "true") {
+      document.getElementById("noticeOverlay").style.display = "none";
+    }
+
+    if (hasSavedLogin()) {
+      window.location.href = "profiles.html";
+    }
+  </script>
+</body>
+</html>
