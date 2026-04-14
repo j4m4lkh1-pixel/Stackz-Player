@@ -341,18 +341,7 @@ app.get("/proxy-stream", async (req, res) => {
       }
     });
 
-    res.setHeader("Access-Control-Allow-Origin", "*");
-
-    if (!upstream.body) {
-      return res.end();
-    }
-
-    upstream.body.pipe(res);
-  } catch (err) {
-    console.log("Universal proxy failed:", err);
-    res.status(500).send("Universal proxy failed");
-  }
-});
+    
 
     res.setHeader("Access-Control-Allow-Origin", "*");
 
