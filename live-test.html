@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Live TV Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+    }
+
+    button {
+      padding: 12px 18px;
+      border: none;
+      border-radius: 999px;
+      background: #ce5cf0;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+
+    video {
+      width: 100%;
+      max-height: 75vh;
+      background: black;
+    }
+
+    #status {
+      margin-top: 12px;
+      color: #8fd3ff;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Live TV Direct Stream Test</h2>
+
+  <input id="streamUrl" placeholder="Paste live stream URL here">
+
+  <button onclick="testStream()">Test Stream</button>
+
+  <video id="video" controls autoplay playsinline></video>
+
+  <div id="status">Waiting for stream...</div>
+
+  <script>
+    let hls = null;
+
+    function testStream() {
+      const url = document.getElementById("streamUrl").value.trim();
+      const video = document.getElementById("video");
+      const status = document.getElementById("status");
+
+      if (!url) {
+        status.textContent = "Please paste a stream URL first.";
+        return;
+      }
+
+      status.textContent = "Loading stream...";
+
+      if (hls) {
+        hls.destroy();
+        hls = null;
+      }
+
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
+
+      if (url.includes(".m3u8") && Hls.isSupported()) {
+        hls = new Hls();
+        hls.loadSource(url);
+        hls.attachMedia(video);
+
+        hls.on(Hls.Events.MANIFEST_PARSED, function () {
+          status.textContent = "Manifest loaded. Trying playback...";
+          video.play().catch(function (err) {
+            status.textContent = "Playback blocked or failed: " + err.message;
+          });
+        });
+
+        hls.on(Hls.Events.ERROR, function (event, data) {
+          console.error(data);
+          status.textContent = "HLS error: " + data.type + " / " + data.details;
+        });
+      } else {
+        video.src = url;
+        video.play().then(function () {
+          status.textContent = "Playing direct stream.";
+        }).catch(function (err) {
+          status.textContent = "Playback failed: " + err.message;
+        });
+      }
+    }
+  </script>
+
+</body>
+</html>
